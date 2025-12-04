@@ -1,0 +1,86 @@
+# GoReleaser configuration for flog
+# Documentation: https://goreleaser.com
+
+version: 2
+
+project_name: flog
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: flog
+    main: ./cmd/flog
+    binary: flog
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: default
+    format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE*
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - Merge pull request
+      - Merge branch
+
+brews:
+  - name: flog
+    repository:
+      owner: ishk9
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    directory: Formula
+    homepage: "https://github.com/ishk9/flog"
+    description: "Fast Log Filter - A blazingly fast CLI tool for filtering structured logs"
+    license: "MIT"
+    install: |
+      bin.install "flog"
+    test: |
+      system "#{bin}/flog", "--version"
+
+release:
+  github:
+    owner: ishk9
+    name: flog
+  draft: false
+  prerelease: auto
+  name_template: "v{{.Version}}"
+
+# Announce new releases (optional)
+# announce:
+#   twitter:
+#     enabled: false
+
