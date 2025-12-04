@@ -1,5 +1,5 @@
-# Binaries
-flog
+# Binaries (only at root, not cmd/flog/)
+/flog
 *.exe
 *.exe~
 *.dll
